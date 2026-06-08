@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Understanding the Laws of Gases</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f0f4f8;
+        color: #333;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+    }
+    h1 {
+        text-align: center;
+        color: #1a365d;
+        margin-bottom: 30px;
+    }
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 25px;
+    }
+    section {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    section h2 {
+        color: #2b6cb0;
+        margin-top: 0;
+        text-align: center;
+    }
+    p {
+        text-align: center;
+        min-height: 48px;
+    }
+    canvas {
+        border: 2px solid #cbd5e0;
+        background: #f8fafc;
+        border-radius: 8px;
+        display: block;
+        margin: 15px 0;
+    }
+    .controls {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        width: 100%;
+        justify-content: center;
+    }
+    .slider {
+        width: 200px;
+        cursor: pointer;
+    }
+    button {
+        background-color: #3182ce;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s;
+    }
+    button:hover {
+        background-color: #2b6cb0;
+    }
+</style>
+</head>
+<body>
+
+<h1>Understanding the Laws of Gases</h1>
+
+<div class="grid-container">
+    <section>
+        <h2>Boyle's Law</h2>
+        <p><strong>Constant T:</strong> Decreasing Volume (V) increases Pressure (P). Watch particles hit walls more frequently in a smaller space.</p>
+        <canvas id="boyleCanvas" width="400" height="250"></canvas>
+        <div class="controls">
+            <label for="boylePiston">Move Piston (Volume):</label>
+            <input type="range" min="50" max="200" value="100" id="boylePiston" class="slider">
+        </div>
+    </section>
+
+    <section>
+        <h2>Charles's Law</h2>
+        <p><strong>Constant P:</strong> Increasing Temperature (T) increases Volume (V). The balloon expands as it gets hotter.</p>
+        <canvas id="charlesCanvas" width="400" height="250"></canvas>
+        <div class="controls">
+            <label for="charlesTemp">Temperature:</label>
+            <input type="range" min="0.5" max="2" value="1" step="0.01" id="charlesTemp" class="slider">
+        </div>
+    </section>
+
+    <section>
+        <h2>Gay-Lussac's Law</h2>
+        <p><strong>Constant V:</strong> Increasing Temperature (T) makes particles move faster, increasing Pressure (P).</p>
+        <canvas id="gayCanvas" width="400" height="250"></canvas>
+        <div class="controls">
+            <label for="gayTemp">Temperature:</label>
+            <input type="range" min="1" max="10" value="2" id="gayTemp" class="slider">
+        </div>
+    </section>
+
+    <section>
+        <h2>Avogadro's Law</h2>
+        <p><strong>Constant T & P:</strong> Adding more gas particles (n) increases the Volume (V) of the container.</p>
+        <canvas id="avoCanvas" width="400" height="250"></canvas>
+        <div class="controls">
+            <button id="avoBtn">Pump Gas Particle</button>
+        </div>
+    </section>
+</div>
+
+<script>
+// Helper to create particles
+function createParticles(num, speedMult = 1) {
+    let pts = [];
+    for(let i=0; i<num; i++) {
+        pts.push({
+            x: Math.random() * 200 + 50,
+            y: Math.random() * 100 + 50,
+            vx: (Math.random() > 0.5 ? 1 : -1) * (1 + Math.random()) * speedMult,
+            vy: (Math.random() > 0.5 ? 1 : -1) * (1 + Math.random()) * speedMult,
+            radius: 4
+        });
+    }
+    return pts;
+}
+
+// --- BOYLE'S LAW ---
+(function() {
+    const ctx = document.getElementById('boyleCanvas').getContext('2d');
+    const slider = document.getElementById('boylePiston');
+    let particles = createParticles(30, 1.5);
+    const boxX = 50, boxWidth = 300, boxBottom = 230;
+
+    function draw() {
+        let pistonY = Number(slider.value);
+        ctx.clearRect(0, 0, 400, 250);
+        
+        // Draw Box
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#4a5568';
+        ctx.strokeRect(boxX, pistonY, boxWidth, boxBottom - pistonY);
+        
+        // Draw Piston
+        ctx.fillStyle = '#a0aec0';
+        ctx.fillRect(boxX, pistonY - 15, boxWidth, 15);
+
+        // Update and draw particles
+        ctx.fillStyle = '#3182ce';
+        particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+
+            // Bounce logic
+            if(p.x - p.radius < boxX) { p.x = boxX + p.radius; p.vx *= -1; }
+            if(p.x + p.radius > boxX + boxWidth) { p.x = boxX + boxWidth - p.radius; p.vx *= -1; }
+            if(p.y - p.radius < pistonY) { p.y = pistonY + p.radius; p.vy *= -1; }
+            if(p.y + p.radius > boxBottom) { p.y = boxBottom - p.radius; p.vy *= -1; }
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+            ctx.fill();
+        });
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+// --- CHARLES'S LAW ---
+(function() {
+    const ctx = document.getElementById('charlesCanvas').getContext('2d');
+    const slider = document.getElementById('charlesTemp');
+
+    function draw() {
+        ctx.clearRect(0, 0, 400, 250);
+        let scale = Number(slider.value);
+        
+        // Draw Flame/Heat indicator
+        let heatColor = `rgba(255, ${250 - (scale*100)}, 0, ${scale - 0.5})`;
+        ctx.fillStyle = heatColor;
+        ctx.fillRect(150, 200, 100, 50);
+        
+        // Draw Balloon
+        ctx.save();
+        ctx.translate(200, 125);
+        ctx.scale(scale, scale);
+        ctx.beginPath();
+        ctx.arc(0, 0, 40, 0, Math.PI*2);
+        ctx.moveTo(0, 40);
+        ctx.lineTo(-10, 60);
+        ctx.lineTo(10, 60);
+        ctx.closePath();
+        ctx.fillStyle = '#e53e3e';
+        ctx.fill();
+        ctx.restore();
+        
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+// --- GAY-LUSSAC'S LAW ---
+(function() {
+    const ctx = document.getElementById('gayCanvas').getContext('2d');
+    const slider = document.getElementById('gayTemp');
+    let particles = createParticles(30, 1);
+    const box = {x: 50, y: 30, w: 300, h: 190};
+
+    function draw() {
+        let temp = Number(slider.value);
+        ctx.clearRect(0, 0, 400, 250);
+        
+        // Background color shifts to red as it gets hotter
+        ctx.fillStyle = `rgba(255, 0, 0, ${temp/30})`;
+        ctx.fillRect(box.x, box.y, box.w, box.h);
+        
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#4a5568';
+        ctx.strokeRect(box.x, box.y, box.w, box.h);
+
+        particles.forEach(p => {
+            // Apply speed multiplier based on temp
+            p.x += p.vx * (temp * 0.4);
+            p.y += p.vy * (temp * 0.4);
+
+            if(p.x - p.radius < box.x) { p.x = box.x + p.radius; p.vx *= -1; }
+            if(p.x + p.radius > box.x + box.w) { p.x = box.x + box.w - p.radius; p.vx *= -1; }
+            if(p.y - p.radius < box.y) { p.y = box.y + p.radius; p.vy *= -1; }
+            if(p.y + p.radius > box.y + box.h) { p.y = box.y + box.h - p.radius; p.vy *= -1; }
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+            ctx.fillStyle = '#dd6b20';
+            ctx.fill();
+        });
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+// --- AVOGADRO'S LAW ---
+(function() {
+    const ctx = document.getElementById('avoCanvas').getContext('2d');
+    const btn = document.getElementById('avoBtn');
+    let particles = createParticles(5, 1); 
+    const boxY = 50, boxH = 150;
+    
+    // Initial width is small, expands as particles are added
+    let targetWidth = 80; 
+    let currentWidth = 80;
+
+    btn.addEventListener('click', () => {
+        if(targetWidth < 350) {
+            targetWidth += 30; // Increase volume
+            let newPts = createParticles(4, 1);
+            // Place new particles near the entry port
+            newPts.forEach(p => { p.x = 20; p.y = 125; });
+            particles.push(...newPts);
+        }
+    });
+
+    function draw() {
+        ctx.clearRect(0, 0, 400, 250);
+        
+        // Smoothly animate the wall expanding
+        currentWidth += (targetWidth - currentWidth) * 0.1;
+
+        // Container
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#4a5568';
+        // Left, Top, Bottom walls
+        ctx.beginPath();
+        ctx.moveTo(10, boxY);
+        ctx.lineTo(10 + currentWidth, boxY);
+        ctx.lineTo(10 + currentWidth, boxY + boxH);
+        ctx.lineTo(10, boxY + boxH);
+        ctx.lineTo(10, boxY);
+        ctx.stroke();
+
+        ctx.fillStyle = '#38a169';
+        particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if(p.x - p.radius < 10) { p.x = 10 + p.radius; p.vx *= -1; }
+            if(p.x + p.radius > 10 + currentWidth) { p.x = 10 + currentWidth - p.radius; p.vx *= -1; }
+            if(p.y - p.radius < boxY) { p.y = boxY + p.radius; p.vy *= -1; }
+            if(p.y + p.radius > boxY + boxH) { p.y = boxY + boxH - p.radius; p.vy *= -1; }
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+            ctx.fill();
+        });
+        
+        // Draw the text showing current 'n'
+        ctx.fillStyle = '#333';
+        ctx.font = '14px Arial';
+        ctx.fillText(`n = ${particles.length} particles`, 15, 40);
+
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+</script>
+</body>
+</html>
