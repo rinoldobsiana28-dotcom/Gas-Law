@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Understanding the Laws of Gases</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+  line-height: 1.6;
+}
+section {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 20px 0;
+}
+canvas {
+  border: 1px solid #333;
+  background: #f8f8f8;
+  display: block;
+  margin: 10px auto;
+}
+h1, h2 {
+  text-align: center;
+}
+.slider {
+  width: 300px;
+}
+</style>
+</head>
+<body>
+<h1>Understanding the Laws of Gases: Interactive Visual Guide</h1>
+<p>This page demonstrates the major gas laws using simple live animations.</p>
+
+<section>
+<h2>Boyle's Law</h2>
+<p>At constant temperature, decreasing volume increases pressure.</p>
+<input type="range" min="50" max="180" value="120" id="piston" class="slider">
+<label>Move Piston</label>
+<canvas id="boyle" width="500" height="250"></canvas>
+</section>
+
+<section>
+<h2>Charles's Law</h2>
+<p>At constant pressure, increasing temperature increases volume.</p>
+<input type="range" min="1" max="2" value="1" step="0.01" id="balloonSlider" class="slider">
+<label>Increase Temperature</label>
+<canvas id="charles" width="500" height="250"></canvas>
+</section>
+
+<section>
+<h2>Gay-Lussac's Law</h2>
+<p>At constant volume, increasing temperature increases pressure.</p>
+<input type="range" min="1" max="8" value="2" id="speedSlider" class="slider">
+<label>Temperature</label>
+<canvas id="gay" width="500" height="250"></canvas>
+</section>
+
+<section>
+<h2>Avogadro's Law</h2>
+<p>At constant temperature and pressure, adding more gas particles increases volume.</p>
+<button onclick="addParticle()">Add Gas Particle</button>
+<canvas id="avo" width="500" height="250"></canvas>
+</section>
+
+<script>
+// Boyle's Law
+const b = document.getElementById('boyle');
+const bctx = b.getContext('2d');
+const piston = document.getElementById('piston');
+let particles = [];
+for (let i = 0; i < 30; i++) {
+  particles.push({x: Math.random()*480+10, y: Math.random()*200+30, vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*2});
+}
+function drawBoyle(){
+  let p = Number(piston.value);
+  bctx.clearRect(0,0,500,250);
+  // Container
+  bctx.strokeRect(50,20,400,200);
+  // Piston
+  bctx.fillStyle='gray';
+  bctx.fillRect(50,p,400,10);
+  // Particles
+  particles.forEach(pt=>{
+    pt.x += pt.vx;
+    pt.y += pt.vy;
+    if(pt.x<50||pt.x>450) pt.vx*=-1;
+    if(pt.y<30||pt.y>p-5) pt.vy*=-1;
+    bctx.beginPath();
+    bctx.arc(pt.x,pt.y,4,0,Math.PI*2);
+    bctx.fillStyle='blue';
+    bctx.fill();
+  });
+  requestAnimationFrame(drawBoyle);
+}
+drawBoyle();
+
+// Charles's Law
+const c = document.getElementById('charles');
+const cctx = c.getContext('2d');
+const balloon = document.getElementById('balloonSlider');
+function drawCharles(){
+  cctx.clearRect(0,0,500,250);
+  let s = Number(balloon.value);
+  cctx.save();
+  cctx.translate(250,125);
+  cctx.scale(s,s);
+  cctx.beginPath();
+  cctx.arc(0,0,50,0,Math.PI*2);
+  cctx.fillStyle='lightblue';
+  cctx.fill();
+  cctx.restore();
+  requestAnimationFrame(drawCharles);
+}
+drawCharles();
+
+// Gay-Lussac's Law
+const g = document.getElementById('gay');
+const gctx = g.getContext('2d');
+const speedSlider = document.getElementById('speedSlider');
+let movers=[];
+for(let i=0;i<20;i++){
+  movers.push({x:Math.random()*500,y:Math.random()*250,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4});
+}
+function drawGay(){
+  let speed=Number(speedSlider.value);
+  gctx.clearRect(0,0,500,250);
+  movers.forEach(m=>{
+    m.x+=m.vx*speed*0.2;
+    m.y+=m.vy*speed*0.2;
+    if(m.x<0||m.x>500) m.vx*=-1;
+    if(m.y<0||m.y>250) m.vy*=-1;
+    gctx.beginPath();
+    gctx.arc(m.x,m.y,4,0,Math.PI*2);
+    gctx.fillStyle='red';
+    gctx.fill();
+  });
+  requestAnimationFrame(drawGay);
+}
+drawGay();
+
+// Avogadro's Law
+const a=document.getElementById('avo');
+const actx=a.getContext('2d');
+let gas=[{x:100,y:100},{x:200,y:120},{x:300,y:150}];
+function addParticle(){
+  gas.push({x:Math.random()*480+10,y:Math.random()*230+10});
+}
+function drawAvo(){
+  actx.clearRect(0,0,500,250);
+  actx.strokeRect(10,10,480,230);
+  gas.forEach(p=>{
+    actx.beginPath();
+    actx.arc(p.x,p.y,4,0,Math.PI*2);
+    actx.fillStyle='green';
+    actx.fill();
+  });
+  requestAnimationFrame(drawAvo);
+}
+drawAvo();
+</script>
+</body>
+</html>
